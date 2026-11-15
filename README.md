@@ -2,15 +2,21 @@
 
 **SS Tool helps electronics retailers discover, verify and communicate how long connected products receive manufacturer-published security updates.**
 
-SS Tool is a Node.js/Fastify application with a PostgreSQL database and a
-server-rendered retailer workspace. It turns scattered manufacturer support
-statements into traceable, human-reviewed support cards that a retailer can
-show to a customer.
+SS Tool is a Cloudflare Pages application: static HTML/CSS/JS in `dist/`, Pages
+Functions in `functions/`, shared TypeScript handlers in `server/`, and
+PostgreSQL through a Hyperdrive binding. It turns scattered manufacturer
+support statements into traceable, human-reviewed support cards that a retailer
+can show to a customer.
+
+The Fastify app in `src/app.ts` remains available for local Node development and
+the route/integration test suite. Both adapters use the same repositories,
+services, Zod schemas and verification rules.
 
 > This repository is the HackOnVibe team submission. The organizer-provided
-> `index.html`, `.github/workflows/deploy.yml` and `.wrangler/` files are kept
-> in place unchanged. The application itself is a server + PostgreSQL app, not
-> a static site; see [HackOnVibe repository notes](#hackonvibe-repository-notes).
+> `.github/workflows/deploy.yml`, root `index.html` and `.wrangler/` files are
+> kept unchanged. The organizer workflow strips `functions/`, so full Pages
+> Functions deployment uses Cloudflare Git integration or Wrangler; see
+> [Cloudflare Pages deployment](docs/cloudflare-pages.md).
 
 ## Contents
 
@@ -26,6 +32,7 @@ show to a customer.
 - [Environment variables](#environment-variables)
 - [Database setup and migrations](#database-setup-and-migrations)
 - [Running the application](#running-the-application)
+- [Cloudflare Pages deployment](#cloudflare-pages-deployment)
 - [Tests and checks](#tests-and-checks)
 - [Public and authenticated API](#public-and-authenticated-api)
 - [Manufacturer research](#manufacturer-research)
@@ -102,59 +109,78 @@ human review before anything is published.
 
 | Layer | Choice |
 | --- | --- |
-| Runtime | Node.js 22+ (developed on Node 26) |
+| Production runtime | Cloudflare Pages + Pages Functions (Workers, `nodejs_compat`) |
+| Local Node runtime | Node.js 22+ (developed on Node 26), Fastify 5 |
 | Language | TypeScript (strict, NodeNext modules) |
-| HTTP | Fastify 5 |
-| Database | PostgreSQL 16 |
+| Database | PostgreSQL 16 through Cloudflare Hyperdrive in production |
 | ORM / migrations | Drizzle ORM and drizzle-kit |
 | Validation | Zod 4 |
-| AI provider | Any OpenAI-compatible `/chat/completions` endpoint |
-| Frontend | Plain HTML, CSS and JavaScript served by `@fastify/static` (no frontend build step) |
+| AI provider | OpenServ SERV Reasoning or any OpenAI-compatible `/chat/completions` endpoint |
+| Frontend | Plain HTML, CSS and JavaScript built into `dist/` (no bundler) |
 | Tests | Vitest 5 |
 | Local database | Docker Compose |
-| Auth | Single administrator, signed `HttpOnly` session cookie |
-| Logging | Fastify/pino with sensitive headers redacted |
+| Auth | Single administrator, database-backed signed `HttpOnly` session cookie |
+| Logging | Structured JSON with secrets and sensitive headers excluded |
 
 ## Architecture
 
 ```
 Browser
   |
-  |  landing page, /login, /dashboard/*
+  |  /, /login, /dashboard/*
   v
-Fastify application (src/app.ts)
-  |-- auth guard and session service
-  |-- static files from public/
-  |-- routes/          HTTP parsing, validation and response shaping
-  |-- services/        business rules and duplicate checks
-  |-- verification/    integrity checks, conflict detection and review audit
-  |-- research/        safe fetcher, URL safety, robots and HTML extraction
-  |-- extraction/      provider adapter, prompt, schema, date and quote guards
-  |-- repositories/    Drizzle queries; routes do not contain SQL
-  |-- db/              postgres.js client, schema and connectivity probe
+Cloudflare Pages
+  |-- dist/                 static HTML, CSS, JS and hero asset
+  |-- functions/            thin Pages Functions entrypoints
+  |     _middleware.ts      page auth, login redirects, no-store headers
+  |     healthz.ts          liveness
+  |     readyz.ts           PostgreSQL readiness
+  |     api/v1/[[path]].ts  /api/v1 dispatcher
   v
-PostgreSQL 16  <-- Docker volume ss_tool_pgdata locally
+server/api/handler.ts      shared API router, validation and error handling
+  |-- server/pages/        per-request DB, auth, middleware and edge fetcher
+  |-- routes/              Fastify route registration (local/test parity)
+  |-- services/            business rules and duplicate checks
+  |-- verification/        integrity checks, conflict detection and review audit
+  |-- research/            URL safety, robots, discovery and HTML extraction
+  |-- extraction/          provider adapter, prompt, schema, date and quote guards
+  |-- repositories/        Drizzle queries; routes do not contain SQL
+  |-- db/                  postgres.js client, schema and connectivity probe
+  v
+PostgreSQL 16  <-- Hyperdrive in production, Docker volume locally
 ```
 
 Design decisions worth knowing:
 
-- `src/app.ts` builds the app without starting a listener, so tests use
-  Fastify's `inject()` against the real route stack.
-- Research and AI dependencies are injectable. Tests use a mock HTTP layer and
-  a deterministic fake provider, so the suite does not call the internet or a
+- `src/app.ts` builds the Fastify app without starting a listener, so tests use
+  `inject()` against the real route stack; the Pages adapter calls the same
+  services directly.
+- Each Pages request creates and closes its own PostgreSQL client because
+  Workers forbid reusing I/O objects across requests. Hyperdrive handles
+  connection pooling in production.
+- Admin sessions and login-attempt counters live in PostgreSQL, so every isolate
+  sees the same session and logout state.
+- Research and AI dependencies are injectable. Tests use a mock HTTP layer and a
+  deterministic fake provider, so the suite does not call the internet or a
   paid model.
 - The public API is read-only and does not expose reviewer notes, AI provider
   details, prompts, raw HTML or internal fingerprints.
-- The frontend has no bundler. `public/` is served directly, and every page
-  reads the same authenticated `/api/v1` endpoints as any other client.
+- The frontend has no bundler. `scripts/build-pages.mjs` copies `public/` into
+  `dist/` and creates directory routes for the dashboard pages.
 
 ## Repository layout
 
 ```
 src/
-  app.ts                  Fastify app factory
+  app.ts                  Fastify app factory (local Node and tests)
   server.ts               Environment loading, listener and graceful shutdown
   config/env.ts           Zod-validated environment
+server/
+  api/handler.ts          Shared /api/v1 router for Pages Functions
+  pages/                  Pages auth, middleware, health, context, edge fetcher
+functions/                Root Cloudflare Pages Functions entrypoints
+dist/                     Generated static Pages build (not committed)
+wrangler.toml             Pages project and Hyperdrive binding template
   auth/                   Single-admin credential check, sessions and guard
   routes/                 Auth, dashboard, research, review, catalogue,
                           evidence, public, manufacturers, products, health
@@ -173,7 +199,7 @@ src/
 public/                   Landing page, dashboard, login, CSS, JS and hero asset
 drizzle/                  Generated SQL migrations and snapshots
 tests/                    Vitest route, integration and safety tests
-docs/                     Catalogue import and public support API documentation
+docs/                     Pages deployment, catalogue import and public API docs
 .agents/                  Project-local design skill (not required at runtime)
 ```
 
@@ -199,21 +225,28 @@ docker compose ps
 # 4. Apply the migrations
 npm run db:migrate
 
-# 5. Start the development server
-npm run dev
+# 5. Build static Pages assets and start the Pages runtime
+npm run build
+npm run dev:pages
+
+# Optional: run the Fastify server instead
+# npm run dev
 ```
 
 On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp`.
+For Pages development, copy `.dev.vars.example` to `.dev.vars` as described in
+[Cloudflare Pages deployment](docs/cloudflare-pages.md).
 
-Verify the process and database:
+Verify the Pages runtime and database:
 
 ```bash
-curl -i http://localhost:3000/healthz
-curl -i http://localhost:3000/readyz
+curl -i http://localhost:8788/healthz
+curl -i http://localhost:8788/readyz
 ```
 
-`/healthz` returns `200` while the process is alive. `/readyz` returns `200`
-when PostgreSQL answers a `select 1` probe (3s timeout) and `503` otherwise.
+`/healthz` returns `200` while the process or Pages Function is alive. `/readyz`
+returns `200` when PostgreSQL answers a `select 1` probe (3s timeout) and `503`
+otherwise. With `npm run dev`, the default address is `http://localhost:3000`.
 
 > If `localhost:5432` is already in use, change `POSTGRES_PORT` in `.env` and
 > use the same port in `DATABASE_URL`.
@@ -234,12 +267,15 @@ manager). These values are optional at boot so the public site continues to
 work before the dashboard is configured, but `POST /api/v1/auth/login` then
 returns `503 AUTH_NOT_CONFIGURED` rather than accepting a default credential.
 
-Open `http://localhost:3000/login`, sign in, and the overview is served at
-`/dashboard`. The single administrator account is shared for this deployment.
-Sessions are in-memory, expire after `SESSION_TTL_HOURS`, and are invalidated
-by a server restart.
+Open `http://localhost:8788/login` (Pages) or `http://localhost:3000/login`
+(Fastify), sign in, and the overview is served at `/dashboard`. The single
+administrator account is shared for this deployment. Sessions are stored in
+PostgreSQL, expire after `SESSION_TTL_HOURS`, are invalidated on logout, and
+are visible to every isolate. Login attempts are also stored in PostgreSQL and
+limited to 5 per IP per 15 minutes.
 
-> Never commit `.env`, and do not use the example values above in a deployment.
+> Never commit `.env` or `.dev.vars`, and do not use the example values above in
+> a deployment.
 
 ## Environment variables
 
@@ -263,6 +299,12 @@ complete template.
 | `ADMIN_PASSWORD` | Dashboard | Administrator password, at least 12 characters |
 | `SESSION_SECRET` | Dashboard | Cookie signing secret, at least 32 characters |
 | `SESSION_TTL_HOURS` | No | Session lifetime, 1-168 (default `8`) |
+| `SERV_API_KEY` | AI extraction | OpenServ SERV Reasoning API key; server-side only |
+| `SERV_MODEL` | No | SERV model (default `gpt-5.4-mini`) |
+| `SERV_BASE_URL` | No | SERV base URL (default `https://inference-api.openserv.ai/v1`) |
+| `SERV_TIMEOUT_MS` | No | SERV timeout, 100-120000 ms (falls back to `AI_TIMEOUT_MS`) |
+| `SERV_MAX_INPUT_TOKENS` | No | SERV input budget (falls back to `AI_MAX_INPUT_TOKENS`) |
+| `SERV_MAX_OUTPUT_TOKENS` | No | SERV output budget (falls back to `AI_MAX_OUTPUT_TOKENS`) |
 | `AI_BASE_URL` | AI extraction | OpenAI-compatible base URL |
 | `AI_API_KEY` | AI extraction | Provider API key; never commit a real value |
 | `AI_MODEL` | AI extraction | Model identifier |
@@ -270,10 +312,18 @@ complete template.
 | `AI_MAX_INPUT_TOKENS` | No | Input budget (default `8000`) |
 | `AI_MAX_OUTPUT_TOKENS` | No | Output budget (default `1500`) |
 
-AI extraction is enabled only when all three of `AI_BASE_URL`, `AI_API_KEY`
-and `AI_MODEL` are set. Without them, catalogue, product, research and review
-endpoints still work; `POST /api/v1/products/:id/extract-evidence` returns
-`503 AI_NOT_CONFIGURED`.
+AI extraction is enabled by either:
+
+- `SERV_API_KEY` (preferred), optionally with `SERV_MODEL` and `SERV_BASE_URL`.
+  This selects the OpenServ SERV Reasoning provider; or
+- all three of `AI_BASE_URL`, `AI_API_KEY` and `AI_MODEL` for any other
+  OpenAI-compatible endpoint.
+
+When both are present, the `SERV_*` variables win. Without any complete
+configuration, catalogue, product, research and review endpoints still work;
+`POST /api/v1/products/:id/extract-evidence` returns `503 AI_NOT_CONFIGURED`.
+Provider failures never create evidence, and there is no silent fallback from
+SERV to another provider.
 
 `.env.example` contains local Docker development credentials. They are not
 production values, and they must not be reused for a shared or deployed
@@ -294,28 +344,39 @@ npm run db:generate
 npm run db:migrate
 ```
 
-The four migrations `0000_*.sql` through `0003_*.sql` create six tables:
-`manufacturers`, `products`, `sources`, `product_sources`, `evidence` and
-`evidence_reviews`. See [Data model](#data-model) for their relationships.
+The migrations `0000_*.sql` through `0004_*.sql` create eight tables:
+`manufacturers`, `products`, `sources`, `product_sources`, `evidence`,
+`evidence_reviews`, `admin_sessions` and `login_attempts`. See
+[Data model](#data-model) for their relationships. `0004` adds the persistent
+session and login-attempt tables; it does not delete existing rows.
 
 PostgreSQL data lives in the named Docker volume `ss_tool_pgdata`.
 `docker compose down` keeps it; `docker compose down -v` deletes it.
 
 ## Running the application
 
-```bash
-# Development with watch mode
-npm run dev
+### Cloudflare Pages runtime
 
-# Production build and start
+```bash
 npm run build
-npm start
+npm run dev:pages
 ```
 
-The compiled entrypoint is `dist/server.js`. The build also requires the
-`public/` directory, which is served directly at runtime. The landing page is
-`http://localhost:3000/`, the dashboard is `http://localhost:3000/dashboard`,
-and the sign-in page is `http://localhost:3000/login`.
+`npm run build` writes the static site to `dist/`. `wrangler pages dev dist`
+serves `dist/` together with the root `functions/` directory. The default
+Wrangler port is `8788`; pass `--port` and `--ip` to change it. The landing page
+is `/`, the dashboard is `/dashboard`, and sign-in is `/login`.
+
+### Fastify Node runtime
+
+```bash
+npm run dev        # watch mode
+npm run build:server
+npm start          # build/server/server.js
+```
+
+The Fastify server is useful for local development and route tests. Serve it at
+`http://localhost:3000/` after `npm run dev`.
 
 ### npm scripts
 
@@ -325,10 +386,37 @@ and the sign-in page is `http://localhost:3000/login`.
 | `npm test` | Run Vitest once |
 | `npm run test:watch` | Run Vitest in watch mode |
 | `npm run typecheck` | Strict TypeScript check, no emit |
-| `npm run build` | Compile to `dist/` |
-| `npm start` | Run the compiled server |
+| `npm run build` | Build static Pages assets into `dist/` |
+| `npm run build:server` | Compile the Node compatibility server into `build/server/` |
+| `npm run dev:pages` | Run `wrangler pages dev dist` |
+| `npm start` | Run the compiled Node server |
 | `npm run db:generate` | Generate SQL migrations from `src/db/schema.ts` |
 | `npm run db:migrate` | Apply pending migrations |
+| `npm run smoke:serv` | One live OpenServ SERV extraction against a fixed sample (needs `SERV_API_KEY`; builds the server first) |
+
+## Cloudflare Pages deployment
+
+The repository targets the official HackOnVibe Cloudflare Pages architecture:
+static assets in `dist/`, Pages Functions at the repository root, reusable
+handlers in `server/`, and PostgreSQL through a `HYPERDRIVE` binding.
+
+Local Pages development:
+
+```bash
+npm run build
+npm run dev:pages
+```
+
+Production setup requires a real Hyperdrive configuration and encrypted Pages
+secrets (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, and optionally
+`SERV_API_KEY`). The binding is intentionally not committed with a placeholder
+ID. See [Cloudflare Pages deployment](docs/cloudflare-pages.md) for the binding,
+secrets, migration and `wrangler pages deploy` commands.
+
+> The organizer workflow excludes `functions/` and `wrangler.*` from its static
+> artifact. It can publish the static shell but cannot run the API, auth or
+> database-backed pages. Use Cloudflare Git integration or Wrangler for the
+> complete application; the workflow itself is unchanged.
 
 ## Tests and checks
 
@@ -347,13 +435,26 @@ Last verified locally on 2026-11-15:
 
 - `npm run typecheck` — passed
 - `npm run build` — passed
-- `npm test` — 14 test files, 217 tests passed
+- `npm test` — 18 test files, 259 tests passed
 
 The suite covers health routes, manufacturer/product validation, research URL
 safety and fetch limits, robots handling, AI provider errors and timeouts,
-extraction guards, landing-page static serving, authentication and dashboard
-access, research workbench data, catalogue import, evidence review and the
-public support API.
+OpenServ SERV configuration and mocked SERV responses, extraction guards,
+landing-page static serving, the judge demo, authentication and dashboard
+access, Pages adapter health/auth/public routes, PostgreSQL-backed session
+persistence and rate limiting, research workbench data, catalogue import,
+evidence review and the public support API. No test contacts the real SERV
+endpoint; the live check is `npm run smoke:serv`.
+
+That live smoke test passed on 2026-11-15 against the configured SERV endpoint
+(`gpt-5.4-mini-2026-03-17`, HTTP 200, 735 prompt + 91 completion tokens, 6.7 s):
+the quotation was found verbatim in the sample source, the date normalised to
+`2030-12-31` at day precision, and the claim remained `pending`. SERV rejects
+`max_tokens`, so the provider sends `max_completion_tokens` for SERV and
+`max_tokens` for other OpenAI-compatible endpoints. SERV also varies field names
+between calls (`claim_type`, `supported_claim`, `source_quote`, `verbatim_quote`,
+and similar); the schema normalises those aliases and still requires a verbatim
+source quotation.
 
 ## Public and authenticated API
 
@@ -379,6 +480,8 @@ documented in `docs/catalogue-import.md`.
 | POST | `/api/v1/auth/logout` | Destroy the current session and clear its cookie |
 | GET | `/api/v1/public/products/lookup` | Resolve a product by GTIN or manufacturer + model |
 | GET | `/api/v1/public/products/:id/support-card` | Reviewed public support card |
+| GET | `/api/v1/public/demo/products` | Predefined judge-demo products and their fixed demo sources |
+| POST | `/api/v1/public/demo/extract` | Live SERV extraction preview for one predefined demo product (`200`, `400`, `429`, `502`, `503`); never persists evidence |
 
 ### Authenticated endpoints
 
@@ -416,8 +519,10 @@ Authentication notes:
 - The browser never receives a password, password hash or signing secret. Only
   a random session identifier is stored, in a signed `HttpOnly`,
   `SameSite=Lax` cookie; `Secure` is added when `NODE_ENV=production`.
-- Failed logins are limited to 5 per IP per 15 minutes (in-memory), returning
+- Failed logins are limited to 5 per IP per 15 minutes in PostgreSQL, returning
   `429` with `Retry-After`. Login failures never log the submitted password.
+- Sessions are rows in `admin_sessions`; logout deletes the row, so the cookie
+  stops working on every isolate immediately.
 - The public support API and public lookup are intentionally unauthenticated,
   read-only and cacheable.
 
@@ -444,8 +549,10 @@ support dates.
   or are reported as failures without being requested.
 - Only HTTP(S) on ports 80/443 is allowed. Loopback, private, link-local and
   reserved addresses are refused, as are URLs with embedded credentials.
-- DNS is resolved once per hop and the connection is pinned to the validated
-  address; every redirect hop is revalidated. Cross-host redirects are refused.
+- DNS is resolved once per hop and every redirect hop is revalidated. In the
+  Node fetcher the connection is pinned to the validated address; the Pages
+  fetcher validates through DNS-over-HTTPS before `fetch`. Cross-host redirects
+  are refused in both.
 - `robots.txt` is honoured (fetched through the same safe fetcher and excluded
   from the page budget). A missing robots file allows access; explicit `401`/`403`
   forbids it.
@@ -481,9 +588,10 @@ Response shape:
 
 `POST /api/v1/products/:id/extract-evidence` reads up to five already-fetched
 sources associated with the product and asks the configured AI model for
-structured claims. It never fetches a webpage. Sources associated only as
-`discovered_candidate`, sources without text, non-2xx fetches and third-party
-domains are skipped and reported.
+structured claims. The provider is OpenServ SERV Reasoning when `SERV_API_KEY`
+is set, otherwise any configured OpenAI-compatible endpoint. It never fetches a
+webpage. Sources associated only as `discovered_candidate`, sources without
+text, non-2xx fetches and third-party domains are skipped and reported.
 
 Every model response is schema-validated with Zod. A claim is stored only when:
 
@@ -540,9 +648,10 @@ Response shape:
 ```
 
 A result with zero claims is successful. Provider problems return `503
-AI_NOT_CONFIGURED`, `504 AI_PROVIDER_TIMEOUT` or `502 AI_PROVIDER_ERROR`;
-malformed model JSON is reported per source in `extractionFailures` without
-storing anything for that source.
+AI_NOT_CONFIGURED`, `504 AI_PROVIDER_TIMEOUT`, `502 AI_PROVIDER_ERROR`,
+`502 AI_PROVIDER_AUTH_FAILED`, or `429 AI_PROVIDER_RATE_LIMITED`; malformed
+model JSON is reported per source in `extractionFailures` without storing
+anything for that source.
 
 ## Verification and human review
 
@@ -574,11 +683,20 @@ review history.
 The note is required. Accepting evidence also re-checks source integrity and
 returns `422 SOURCE_INTEGRITY_FAILED` when the source is not eligible. A
 rejected-accepted cycle is recorded in `evidence_reviews`; the audit row is
-append-only.
+append-only.The review UI is at `/dashboard/review`. The queue supports status filters,
+search, and pagination over PostgreSQL records. Selecting a record shows the
+product context, extracted claim, exact quotation, source metadata, backend
+integrity results, product-level conflict comparisons, and review history.
+Both decisions require a note and an explicit confirmation; the browser cannot
+auto-accept or bulk-approve evidence, and it displays the backend error when a
+review is refused.
 
-The review UI is at `/dashboard/review`. It shows the quotation, date wording,
-normalized date, source, current status, integrity results and conflicts, and
-provides explicit **Accept evidence** and **Reject evidence** actions.
+Publication readiness is derived from the same assessment data: conflict
+counts, pending records, accepted records, and whether an accepted claim is in
+a conflict. The UI links to the public support-card endpoint only when it has an
+accepted claim and no accepted conflict. Acceptance records that a human
+reviewed a manufacturer statement; it is not a security score or CRA
+certification.
 
 ## Catalogue import
 
@@ -650,9 +768,37 @@ Migrations `drizzle/0000_*.sql` through `drizzle/0003_*.sql` create six tables:
 
 ## Judge demo
 
-There is no separate hosted demo or demo mode committed to this repository.
-The application is a server + PostgreSQL app; the organizer's static Cloudflare
-Pages pipeline cannot run it. Use the local walkthrough below.
+The repository does not ship a hosted demo mode. The application is a server +
+PostgreSQL app; the organizer's static Cloudflare Pages pipeline cannot run it.
+The landing page does include a live judge panel that calls this backend.
+
+### Live SERV demonstration on the landing page
+
+1. Put an OpenServ SERV key in `.env` as `SERV_API_KEY=...`. Keep it out of Git;
+   only `.env.example` with placeholders is published.
+2. Start the server with `npm run dev` and open `http://localhost:3000/`.
+3. In **Live Judge Demonstration**, pick one of the two predefined demo products
+   and press **Run Live SERV Extraction**.
+4. The panel shows the provider, model, latency, request id and token usage,
+   plus each claim's quotation and its validation results.
+
+The demo only accepts the predefined product IDs: there is no URL field and no
+arbitrary source input. Requests are capped at 10 per minute per IP, nothing is
+written to the database, and every claim is returned as `pending`. If the
+configured provider is not SERV, the endpoint refuses with
+`503 SERV_NOT_CONFIGURED` rather than presenting another model as OpenServ SERV.
+
+To verify the live integration from the command line after `npm run build`:
+
+```bash
+npm run smoke:serv
+```
+
+The script sends one controlled extraction to the configured SERV endpoint and
+prints nothing sensitive. Without a key it reports `SERV SMOKE TEST UNVERIFIED`
+instead of contacting the network.
+
+### Local walkthrough
 
 1. Follow [Installation and local setup](#installation-and-local-setup) and
    [Dashboard setup](#dashboard-setup).
@@ -664,9 +810,9 @@ Pages pipeline cannot run it. Use the local walkthrough below.
 5. Open **Research** (`/dashboard/research`), pick a product and inspect the
    stored source panel. To exercise live research, add or edit a manufacturer
    with a real public support website and run research against a product.
-6. With `AI_BASE_URL`, `AI_API_KEY` and `AI_MODEL` configured, run
-   **Extract evidence** on a product with fetched sources. Claims arrive as
-   pending review.
+6. With `SERV_API_KEY` (or `AI_BASE_URL`, `AI_API_KEY` and `AI_MODEL`)
+   configured, run **Extract evidence** on a product with fetched sources.
+   Claims arrive as pending review.
 7. Open **Evidence review** (`/dashboard/review`) to inspect quotations,
    conflicts and integrity checks, then accept or reject a claim with a note.
 8. After accepting evidence, call the public API:
@@ -685,15 +831,15 @@ stand-ins for the network and the AI provider.
 
 ## Known limitations
 
-- **Deployment:** the repository is a Node.js/Fastify server with PostgreSQL.
-  The organizer-provided Cloudflare Pages workflow is a static-site pipeline and
-  does not provide a Node server or database. A production deployment needs a
-  Node host plus managed PostgreSQL, and must set the environment variables
-  above. The retained organizer `index.html` is a placeholder, not the SS Tool
-  application.
-- **Single administrator:** one shared account, in-memory sessions and no
-  multi-tenant retailer workspaces. Restarting the server signs everyone out,
-  and multiple instances would need a shared session store.
+- **Organizer workflow:** the organizer-provided Cloudflare Pages workflow
+  packages only static files and excludes `functions/`, `wrangler.*` and
+  `_routes.json`. Deploy the full application through Cloudflare Git integration
+  or `wrangler pages deploy`; the workflow is intentionally left untouched.
+- **Hyperdrive binding:** production needs a real Hyperdrive configuration and
+  the `HYPERDRIVE` binding. Local Pages development uses `DATABASE_URL` in
+  `.dev.vars`; there is no committed production connection string or ID.
+- **Single administrator:** one shared account and no multi-tenant retailer
+  workspaces. Sessions are shared through PostgreSQL rather than process memory.
 - **Synchronous research and extraction:** both run inside the HTTP request.
   Research is capped at 5 pages, depth 1, 2 MB per response and 10 s per
   request; extraction reads at most 5 sources. There is no background job queue
@@ -709,8 +855,18 @@ stand-ins for the network and the AI provider.
   reliably deduplicated across imports.
 - **Source storage:** only extracted text, not full HTML, is stored. Research
   does not fetch external candidate domains automatically.
+- **Pages research transport:** Workers has no Node `http`/`https`, so the Pages
+  adapter validates DNS through DNS-over-HTTPS before fetching. The Node
+  fetcher's socket-level DNS pinning is not available in Workers.
 - **Public identifier lookup:** a duplicated GTIN can produce
   `409 AMBIGUOUS_PRODUCT_MATCH`; the API does not guess which product is meant.
+- **Public page is API-only:** the dashboard's publication-readiness link opens
+  `/api/v1/public/products/:id/support-card`, the JSON support contract. The
+  project does not include a rendered public HTML support page.
+- **Queue conflict counts:** the review queue computes conflict flags and counts
+  from active support-date claims on each request so the numbers match the
+  existing conflict detector. This is suitable for the current single-tenant
+  dataset, not a precomputed queue for very large evidence sets.
 - **No uploads or private files:** catalogue CSV uploads are processed in
   memory and are not persisted to disk.
 
@@ -722,10 +878,14 @@ stand-ins for the network and the AI provider.
   publishing.
 - Logs are structured JSON with authorization and cookie headers redacted.
   Internal error details are never returned to clients.
-- Research refuses loopback, private, link-local and reserved addresses, pins
-  DNS results and revalidates every redirect. It honours `robots.txt` and
-  enforces response size and time limits.
+- Research refuses loopback, private, link-local and reserved addresses and
+  revalidates every redirect. The Node fetcher pins validated DNS results to its
+  socket; the Pages fetcher validates through DNS-over-HTTPS before `fetch`.
+  Both honour `robots.txt` and enforce response size and time limits.
 - The browser never receives a password, password hash or signing secret.
+- The OpenServ SERV key is read only on the server. It is never sent to the
+  browser, included in API responses, logged, or committed; the judge demo only
+  receives a server-generated preview.
 - If you fork or deploy this project, generate fresh credentials and never
   reuse the local Docker development values.
 
@@ -759,9 +919,12 @@ Organizer instructions, preserved for reference:
 **Important for this project:** the workflow detects `package.json` at the
 repository root, runs `npm run build` and looks for a static `index.html` in
 `dist/`, `build/`, `out/`, `.output/public/` or `.next-export/`. SS Tool's build
-produces `dist/server.js`, not a static site. The workflow is intentionally not
-modified. To run SS Tool for judging, use the local setup above or deploy it to
-a Node-compatible host with PostgreSQL.
+now produces that static shell in `dist/`, so the organizer workflow can publish
+the landing, login and dashboard pages. The workflow then excludes `functions/`,
+`_worker.js`, `_routes.json` and `wrangler.*`, so it cannot deploy the API,
+authentication or Hyperdrive binding. The workflow is intentionally not
+modified; use Cloudflare Pages Git integration or Wrangler for the full
+application. See [Cloudflare Pages deployment](docs/cloudflare-pages.md).
 
 The `main` branch is the default branch. Direct pushes are possible with the
 authenticated account; this submission preserves the organizer's existing
@@ -769,6 +932,8 @@ commits and adds the SS Tool implementation on top.
 
 ## Documentation
 
+- [`docs/cloudflare-pages.md`](docs/cloudflare-pages.md) — Pages runtime layout,
+  local Wrangler development, Hyperdrive, secrets, migrations and deployment.
 - [`docs/catalogue-import.md`](docs/catalogue-import.md) — CSV format, upload
   endpoint, validation, manufacturer resolution and duplicate handling.
 - [`docs/public-support-api.md`](docs/public-support-api.md) — public lookup and

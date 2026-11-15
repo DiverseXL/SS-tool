@@ -160,9 +160,14 @@ export function buildExtractionSystemPrompt(): string {
     '- Keep dateText null for durations such as "five years after launch".',
     '',
     'Return only a JSON object with this shape:',
-    '{"claims":[{"claimType":"support_end","statement":"...","quotation":"...","dateText":"December 2030" or null,"confidence":0.0,"explanation":"..."}]}',
+    '{"claims":[{"claimType":"support_end","statement":"...","quotation":"...","dateText":"December 2030" or null,"confidence":0.95,"explanation":"..."}]}',
     '',
-    'confidence is your estimate from 0 to 1 that the quotation directly supports the claim. It is not proof and does not replace review. Return at most 20 claims.',
+    'Field requirements:',
+    '- "claimType" is required and must be exactly one of these strings: "support_start", "support_end", "os_version", "policy". Use "os_version" for operating-system claims, not "operating_system_version".',
+    '- "quotation" is required and must be a verbatim substring of the page text. If the statement is already copied verbatim, repeat it in "quotation" rather than omitting the field.',
+    '- "dateText" is the date key name (do not use "date").',
+    '- "confidence" must be a numeric float between 0.0 and 1.0, not a string.',
+    '- Return at most 20 claims.',
   ].join('\n');
 }
 

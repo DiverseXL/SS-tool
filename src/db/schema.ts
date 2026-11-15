@@ -212,6 +212,30 @@ export const evidenceReviews = pgTable(
   ],
 );
 
+// Persistent, server-side admin sessions for multi-instance/Cloudflare Pages
+// deployments. Only a random session identifier is stored; the browser gets a
+// signed HttpOnly cookie that contains no email or role data.
+export const adminSessions = pgTable(
+  'admin_sessions',
+  {
+    id: text('id').primaryKey(),
+    email: text('email').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index('admin_sessions_expires_at_idx').on(table.expiresAt)],
+);
+
+// Shared login-attempt windows so rate limiting survives across distributed
+// function instances instead of being reset on each isolate.
+export const loginAttempts = pgTable('login_attempts', {
+  ip: text('ip').primaryKey(),
+  attemptCount: integer('attempt_count').notNull().default(0),
+  resetAt: timestamp('reset_at', { withTimezone: true, mode: 'date' }).notNull(),
+});
+
 export type Manufacturer = typeof manufacturers.$inferSelect;
 export type NewManufacturer = typeof manufacturers.$inferInsert;
 export type Product = typeof products.$inferSelect;

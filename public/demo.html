@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Judge demo — SS Tool</title>
+    <meta
+      name="description"
+      content="Explore real manufacturer security-support evidence and reviewed public support cards in SS Tool's read-only judge demo."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/demo.css" />
+  </head>
+  <body class="demo-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="wordmark" href="/" aria-label="SS Tool home">
+          <svg class="wordmark__mark" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <rect x="2.75" y="4.75" width="14.5" height="10.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" />
+            <path d="M6.5 8.5h7M6.5 11.5h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          <span>SS Tool</span>
+        </a>
+
+        <nav class="demo-nav" aria-label="Primary">
+          <a href="/">Overview</a>
+          <a href="#evidence-trail">Evidence trail</a>
+          <a href="#how-it-works">How it works</a>
+          <a class="btn btn--nav" href="/login">Retailer sign in</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="demo-hero" aria-labelledby="demo-title">
+        <div class="container">
+          <div class="demo-hero__meta">
+            <p class="eyebrow">HackOnVibe judge demo</p>
+            <span class="read-only-badge">Read-only · no login</span>
+          </div>
+          <div class="demo-hero__grid">
+            <div>
+              <h1 id="demo-title">See how a product's support period is traced to its source.</h1>
+              <p class="demo-hero__lede">
+                Explore how SS Tool helps retailers understand how long connected products receive
+                security updates. Choose a product to inspect its reviewed support card, the
+                manufacturer's exact words and the review outcome behind every public claim.
+              </p>
+            </div>
+            <aside class="demo-method" aria-label="Demo data note">
+              <p class="field-label">What you are looking at</p>
+              <p>
+                Real Fairphone support records stored in PostgreSQL, reviewed through SS Tool's
+                evidence workflow and returned by the same public support-card API used outside
+                this demo.
+              </p>
+              <p class="demo-method__note">
+                No AI extraction, import, research or review action runs from this page.
+              </p>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="demo-workspace" aria-labelledby="products-title">
+        <div class="container">
+          <div class="demo-layout">
+            <aside class="demo-sidebar">
+              <div class="demo-sidebar__head">
+                <div>
+                  <p class="eyebrow">Demonstration products</p>
+                  <h2 id="products-title">Choose a product</h2>
+                </div>
+                <span class="demo-count" id="demo-count" aria-live="polite">—</span>
+              </div>
+              <p class="demo-sidebar__intro">
+                A small curated dataset. Each entry was matched to a manufacturer support article
+                and reviewed before it became public.
+              </p>
+              <div id="demo-list-status" class="demo-list-status" role="status">Loading demonstration products…</div>
+              <div id="product-list" class="product-list" aria-label="Demonstration products"></div>
+            </aside>
+
+            <div id="demo-result" class="demo-result" aria-live="polite" aria-busy="true">
+              <div class="panel panel--loading">
+                <span class="loading-mark" aria-hidden="true"></span>
+                <p>Loading the reviewed support record…</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="demo-section" id="evidence-trail" aria-labelledby="trail-title">
+        <div class="container">
+          <div class="demo-section__intro">
+            <div>
+              <p class="eyebrow">Evidence trail</p>
+              <h2 id="trail-title">Every public claim keeps its quotation and source.</h2>
+            </div>
+            <p>
+              The panel above is built from the public API response. Only accepted evidence is
+              exposed. Pending and rejected evidence, reviewer notes, AI confidence and internal
+              extraction data never cross the public boundary.
+            </p>
+          </div>
+
+          <div class="provenance-grid">
+            <article>
+              <p class="field-label">Manufacturer</p>
+              <h3>Fairphone</h3>
+              <p>
+                Fairphone B.V. publishes support lifespans for its smartphones. SS Tool stores a
+                captured excerpt, not the manufacturer's full page or HTML.
+              </p>
+            </article>
+            <article>
+              <p class="field-label">Original source</p>
+              <h3>Fairphone support article</h3>
+              <p>
+                “How long will my Fairphone receive software and security updates?”, captured
+                15 November 2026.
+              </p>
+              <a
+                class="provenance-link"
+                href="https://support.fairphone.com/hc/en-us/articles/9979180437393-How-long-will-my-Fairphone-receive-software-and-security-updates"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open the manufacturer page
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                  <path d="M6.5 9.5l3-3M7 4.5h2.5A2.5 2.5 0 0 1 12 7v2.5M9 11.5H6.5A2.5 2.5 0 0 1 4 9V6.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </a>
+            </article>
+            <article>
+              <p class="field-label">Review record</p>
+              <h3>Accepted with a note</h3>
+              <p>
+                Each stored claim entered the normal review service as pending. The seed command
+                records an explicit acceptance note only after checking the quotation and date
+                precision against the captured source.
+              </p>
+            </article>
+          </div>
+
+          <p class="demo-note">
+            Year-only commitments are shown as a year. SS Tool does not turn “2033” into an
+            invented calendar day. A policy without a dated end is shown as a policy, not as a
+            confirmed end date.
+          </p>
+        </div>
+      </section>
+
+      <section class="demo-section demo-section--hairline" id="how-it-works" aria-labelledby="how-title">
+        <div class="container">
+          <div class="demo-section__intro">
+            <div>
+              <p class="eyebrow">How it works</p>
+              <h2 id="how-title">From catalogue record to public support information.</h2>
+            </div>
+            <p>
+              These are the real stages of the product. This demo exposes their stored result, not
+              a simulation of each operation.
+            </p>
+          </div>
+
+          <ol class="demo-steps">
+            <li>
+              <span class="step-number">01</span>
+              <h3>Product catalogue</h3>
+              <p>A retailer records the manufacturer, product name and model identifier.</p>
+              <span class="demo-steps__status">Stored for each demo product</span>
+            </li>
+            <li>
+              <span class="step-number">02</span>
+              <h3>Source discovery</h3>
+              <p>The manufacturer's support page is retrieved and stored with its URL and capture time.</p>
+              <span class="demo-steps__status">One Fairphone support article stored</span>
+            </li>
+            <li>
+              <span class="step-number">03</span>
+              <h3>AI-assisted extraction</h3>
+              <p>In the private workflow, AI can propose a claim only with a verbatim quotation.</p>
+              <span class="demo-steps__status demo-steps__status--muted">Not run by this demo</span>
+            </li>
+            <li>
+              <span class="step-number">04</span>
+              <h3>Human verification</h3>
+              <p>A reviewer checks the source, quotation, date precision and conflicts, then accepts or rejects with a note.</p>
+              <span class="demo-steps__status">3 accepted review records</span>
+            </li>
+            <li>
+              <span class="step-number">05</span>
+              <h3>Public support information</h3>
+              <p>The public API publishes only accepted evidence and recalculates the support status on request.</p>
+              <span class="demo-steps__status">Live support-card API</span>
+            </li>
+          </ol>
+
+          <div class="demo-boundary">
+            <div>
+              <h3>Read-only by design</h3>
+              <p>
+                There is no demo control for import, research, extraction, acceptance or rejection.
+                Those routes still require the administrator session.
+              </p>
+            </div>
+            <a class="btn btn--ink" href="/login">
+              Retailer sign in
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-bottom demo-footer">
+        <p class="footer-disclaimer">
+          SS Tool records manufacturer-published support statements and preserves their sources.
+          This demo does not certify a product as secure, guarantee that updates will be delivered,
+          or replace the manufacturer's current documentation. Fairphone is a real manufacturer;
+          the records shown are the curated demonstration dataset, not a complete market survey.
+        </p>
+        <div class="footer-meta">
+          <p>© 2026 SS Tool</p>
+          <a href="/">Back to overview</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/demo.js" defer></script>
+  </body>
+</html>

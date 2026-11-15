@@ -39,7 +39,8 @@
           <span>SS Tool</span>
         </a>
 
-        <nav class="primary-nav primary-nav--dashboard" aria-label="Primary">
+        <nav class="primary-nav primary-nav--dashboard header-actions" aria-label="Primary">
+          <a class="btn btn--nav" href="#judge-demo">Explore demo</a>
           <a class="btn btn--nav" href="/dashboard">
             Dashboard
             <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
@@ -74,13 +75,13 @@
               decisions.
             </p>
             <div class="hero__actions">
-              <a class="btn btn--primary" href="#how-it-works">
-                See how it works
+              <a class="btn btn--primary" href="#judge-demo">
+                Explore demo
                 <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
                   <path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </a>
-              <a class="btn btn--secondary" href="#preview">View an example</a>
+              <a class="btn btn--secondary" href="#how-it-works">See how it works</a>
             </div>
           </div>
         </div>
@@ -293,6 +294,39 @@
               </p>
             </aside>
           </div>
+
+          <div class="judge-demo-box" id="judge-demo">
+            <div class="judge-demo-header">
+              <div class="judge-demo-header__left">
+                <span class="badge badge--serv">OpenServ SERV Reasoning</span>
+                <h3>Live Judge Demonstration: Real-Time AI Extraction</h3>
+                <p>
+                  Trigger an authentic AI extraction over predefined demonstration source text.
+                  Nothing is fetched from the web and nothing is stored: extraction executes
+                  server-side against the official OpenServ SERV API (<code>gpt-5.4-mini</code>).
+                  All generated claims remain <strong>pending human review</strong> and are shown
+                  alongside their quotation and validation results.
+                </p>
+              </div>
+              <div class="judge-demo-controls">
+                <label for="demo-product-select" class="field-label">Predefined demo product:</label>
+                <div class="judge-demo-action-row">
+                  <select id="demo-product-select" class="demo-select">
+                    <option value="demo-northline-halo-s1">Northline Audio — Halo S1 Home Speaker</option>
+                    <option value="demo-apex-hub-max">Apex Electronics Corp — Apex Hub Max</option>
+                  </select>
+                  <button id="run-demo-btn" class="btn btn--primary">
+                    <span id="run-demo-spinner" class="spinner" hidden></span>
+                    <span id="run-demo-label">Run Live SERV Extraction</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div id="demo-output-container" class="judge-demo-output" hidden>
+              <!-- Populated dynamically upon live execution -->
+            </div>
+          </div>
         </div>
       </section>
 
@@ -435,8 +469,8 @@
           </div>
           <div class="final-cta__action">
             <p>Bring manufacturer commitments closer to the decisions retailers and consumers make.</p>
-            <a class="btn btn--primary" href="#how-it-works">
-              Explore how it works
+            <a class="btn btn--primary" href="#judge-demo">
+              Explore the demo
               <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
                 <path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
@@ -479,15 +513,108 @@
             SS Tool records manufacturer-published security-support statements and preserves their
             sources for review. It does not certify products as secure, guarantee update delivery,
             or prevent cyberattacks. Support information should be checked against the
-            manufacturer's current documentation. Product and manufacturer details shown on this
-            page are illustrative and do not represent a real product record.
+            manufacturer's current documentation. The preview above is illustrative; products in
+            the judge demo use stored manufacturer evidence and accepted review records.
           </p>
           <div class="footer-meta">
             <p>© 2026 SS Tool</p>
-            <p>Illustrative product data only</p>
+            <p>Preview illustrative · demo evidence sourced</p>
           </div>
         </div>
       </div>
     </footer>
+    <script>
+      (function() {
+        const btn = document.getElementById('run-demo-btn');
+        const select = document.getElementById('demo-product-select');
+        const spinner = document.getElementById('run-demo-spinner');
+        const label = document.getElementById('run-demo-label');
+        const output = document.getElementById('demo-output-container');
+        if (!btn || !select || !output) return;
+
+        btn.addEventListener('click', async function() {
+          const productId = select.value;
+          btn.disabled = true;
+          if (spinner) spinner.hidden = false;
+          label.textContent = 'Calling OpenServ SERV...';
+
+          try {
+            const res = await fetch('/api/v1/public/demo/extract', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ demoProductId: productId }),
+            });
+            const body = await res.json().catch(function() { return null; });
+            if (!res.ok || !body || !body.data) {
+              throw new Error((body && body.error && body.error.message) || 'Extraction failed (HTTP ' + res.status + ')');
+            }
+            renderDemoResult(body.data);
+          } catch (err) {
+            output.hidden = false;
+            output.innerHTML = '<div class="demo-error"><strong>Extraction Error:</strong> ' + escapeHtml(err.message) + '</div>';
+          } finally {
+            btn.disabled = false;
+            if (spinner) spinner.hidden = true;
+            label.textContent = 'Run Live SERV Extraction';
+          }
+        });
+
+        function escapeHtml(s) {
+          return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function renderDemoResult(res) {
+          output.hidden = false;
+          let html = '<div class="demo-result-card">';
+          html += '<div class="demo-result-meta">';
+          html += '<span class="status-badge status-badge--live">● Live SERV Inference Complete</span>';
+          html += '<span><strong>Provider:</strong> ' + escapeHtml(res.provider) + '</span>';
+          html += '<span><strong>Model:</strong> ' + escapeHtml(res.model) + '</span>';
+          html += '<span><strong>Latency:</strong> ' + res.durationMs + ' ms</span>';
+          if (res.usage) {
+            html += '<span><strong>Tokens:</strong> ' + (res.usage.promptTokens || 0) + ' prompt / ' + (res.usage.completionTokens || 0) + ' completion</span>';
+          }
+          if (res.requestId) {
+            html += '<span><strong>Request ID:</strong> <code>' + escapeHtml(res.requestId) + '</code></span>';
+          }
+          html += '</div>';
+
+          html += '<div class="demo-claims-list">';
+          html += '<h4>Extracted Security-Support Claims (' + res.claims.length + ')</h4>';
+          if (res.claims.length === 0) {
+            html += '<p class="prose">No explicit security-support commitments were found in this source.</p>';
+          } else {
+            res.claims.forEach(function(c) {
+              var v = c.validation || {};
+              html += '<div class="demo-claim-item' + (v.quotationMatched ? '' : ' demo-claim-item--rejected') + '">';
+              html += '<div class="demo-claim-item__header">';
+              html += '<span class="claim-type-pill">' + escapeHtml(c.claimType) + '</span>';
+              html += '<span class="pending-review-badge">Pending Human Review</span>';
+              html += '</div>';
+              html += '<p class="demo-claim-statement"><strong>Statement:</strong> ' + escapeHtml(c.statement) + '</p>';
+              html += '<blockquote class="demo-claim-quote">“' + escapeHtml(c.quotation) + '”</blockquote>';
+              if (c.dateText) {
+                html += '<p class="demo-claim-date"><strong>Date wording:</strong> ' + escapeHtml(c.dateText) + ' <small>(Precision: ' + escapeHtml(c.datePrecision || 'unknown') + ', Normalized: ' + escapeHtml(c.normalizedDate || 'unspecified') + ')</small></p>';
+              }
+              html += '<div class="demo-claim-provenance">';
+              html += '<span class="demo-check ' + (v.quotationMatched ? 'demo-check--pass' : 'demo-check--fail') + '">' + (v.quotationMatched ? '✓ Quotation found in source text' : '✗ Quotation not found in source text') + '</span>';
+              html += '<span class="demo-check ' + (v.dateSupportedInQuotation ? 'demo-check--pass' : 'demo-check--fail') + '">' + (v.dateSupportedInQuotation ? '✓ Date wording matches quotation' : '✗ Date wording missing from quotation') + '</span>';
+              html += '<span class="demo-check ' + (v.semanticsValid ? 'demo-check--pass' : 'demo-check--fail') + '">' + (v.semanticsValid ? '✓ Claim semantics valid' : '✗ Claim semantics rejected') + '</span>';
+              if (v.rejectionReason) {
+                html += '<span class="demo-check demo-check--fail">Rejection reason: ' + escapeHtml(v.rejectionReason) + '</span>';
+              }
+              html += '<span>Source: <a href="' + escapeHtml(res.source.url) + '" target="_blank" rel="noopener">' + escapeHtml(res.source.title) + '</a></span>';
+              html += '</div>';
+              html += '</div>';
+            });
+          }
+          html += '</div>';
+
+          html += '<p class="demo-disclaimer">' + escapeHtml(res.disclaimer) + '</p>';
+          html += '</div>';
+          output.innerHTML = html;
+        }
+      })();
+    </script>
   </body>
 </html>

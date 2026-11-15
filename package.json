@@ -9,13 +9,20 @@
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/server.js",
+    "dev:pages": "wrangler pages dev dist --compatibility-date 2026-11-15 --compatibility-flags nodejs_compat",
+    "build": "node scripts/build-pages.mjs",
+    "build:server": "tsc -p tsconfig.build.json",
+    "start": "node build/server/server.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "presmoke:serv": "npm run build:server",
+    "smoke:serv": "node scripts/serv-smoke-test.mjs",
+    "pretest:serv": "npm run build:server",
+    "test:serv": "node scripts/serv-smoke-test.mjs",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "demo:seed": "tsx scripts/seed-judge-demo.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.5",
@@ -24,7 +31,7 @@
     "csv-parse": "^7.0.3",
     "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.8",
-    "postgres": "^4.1.1",
+    "postgres": "^3.4.5",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -34,6 +41,7 @@
     "form-data": "^4.0.6",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "wrangler": "^4.162.0"
   }
 }

@@ -58,6 +58,31 @@ function digestEmail(email: string): Buffer {
 }
 
 /**
+ * Shared constant-time credential check used by both the Fastify admin service
+ * and the Cloudflare Pages adapter. Credentials still come only from server
+ * configuration; this helper never stores or returns them.
+ */
+export function verifyAdminCredentials(
+  candidateEmail: string,
+  candidatePassword: string,
+  configuredEmail: string | undefined,
+  configuredPassword: string | undefined,
+): boolean {
+  if (!configuredEmail || !configuredPassword) return false;
+
+  const emailMatches = timingSafeEqual(
+    digestEmail(candidateEmail),
+    digestEmail(configuredEmail),
+  );
+  const passwordMatches = timingSafeEqual(
+    derivePassword(candidatePassword),
+    derivePassword(configuredPassword),
+  );
+
+  return emailMatches && passwordMatches;
+}
+
+/**
  * Single-administrator authentication for the hackathon build.
  *
  * Credentials come from explicit configuration, never from this module. The
@@ -77,8 +102,6 @@ export function createAuthService(config: AuthConfig = {}): AuthService {
     secret.length >= MIN_SESSION_SECRET_LENGTH &&
     ttlMs > 0;
 
-  const expectedEmail = digestEmail(email);
-  const expectedPassword = derivePassword(password);
   const cookieSecret = configured ? secret : randomBytes(32).toString('base64url');
 
   const sessions = new Map<string, AdminSession>();
@@ -119,13 +142,9 @@ export function createAuthService(config: AuthConfig = {}): AuthService {
 
       // Hash both values every time so a wrong email takes the same work as a
       // wrong password. The final comparisons are constant-time.
-      const emailMatches = timingSafeEqual(digestEmail(candidateEmail), expectedEmail);
-      const passwordMatches = timingSafeEqual(
-        derivePassword(candidatePassword),
-        expectedPassword,
-      );
-
-      if (!emailMatches || !passwordMatches) return null;
+      if (!verifyAdminCredentials(candidateEmail, candidatePassword, email, password)) {
+        return null;
+      }
 
       return this.createSession(email);
     },

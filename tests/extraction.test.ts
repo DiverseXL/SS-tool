@@ -793,8 +793,23 @@ describe('POST /api/v1/products/:id/extract-evidence', () => {
       throw new Error('test AI server did not expose a port');
     }
 
-    const keys = ['AI_BASE_URL', 'AI_API_KEY', 'AI_MODEL'] as const;
+    // `.env` may define SERV_* variables, which take precedence over AI_* when
+    // the provider is built from the environment. Clear them for this test so it
+    // exercises the generic OpenAI-compatible path deterministically instead of
+    // calling a real SERV endpoint.
+    const keys = [
+      'AI_BASE_URL',
+      'AI_API_KEY',
+      'AI_MODEL',
+      'SERV_API_KEY',
+      'SERV_MODEL',
+      'SERV_BASE_URL',
+    ] as const;
     const saved = keys.map((key) => [key, process.env[key]] as const);
+
+    for (const key of ['SERV_API_KEY', 'SERV_MODEL', 'SERV_BASE_URL'] as const) {
+      delete process.env[key];
+    }
 
     process.env.AI_BASE_URL = `http://127.0.0.1:${address.port}`;
     process.env.AI_API_KEY = 'test-key';

@@ -1,0 +1,18 @@
+name = "c8vwuzqim4dxj128grrcxjio5e6199r2g528yjey"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-11-15"
+compatibility_flags = ["nodejs_compat"]
+
+# Production PostgreSQL is bound in the Cloudflare dashboard or with:
+#   npx wrangler hyperdrive create ss-tool-db --connection-string="postgres://..."
+# then add the generated id here (never commit the connection string):
+#
+# [[hyperdrive]]
+# binding = "HYPERDRIVE"
+# id = "<HYPERDRIVE_ID_FROM_CLOUDFLARE>"
+#
+# For local `wrangler pages dev`, DATABASE_URL in .dev.vars is used instead so
+# no production Hyperdrive ID is required.
+
+[vars]
+NODE_ENV = "production"

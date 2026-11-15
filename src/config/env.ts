@@ -18,6 +18,14 @@ const envSchema = z.object({
       'must be a postgres:// or postgresql:// connection string',
     ),
 
+  // Optional OpenServ SERV Reasoning AI configuration.
+  SERV_API_KEY: z.string().min(1, 'must not be empty').optional(),
+  SERV_MODEL: z.string().min(1, 'must not be empty').optional(),
+  SERV_BASE_URL: z.url('must be a valid absolute URL').optional(),
+  SERV_TIMEOUT_MS: z.coerce.number().int().min(100).max(120_000).optional(),
+  SERV_MAX_INPUT_TOKENS: z.coerce.number().int().min(256).max(200_000).optional(),
+  SERV_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(64).max(16_000).optional(),
+
   // Optional AI extraction provider (OpenAI-compatible). All three connection
   // values must be supplied together; the extraction endpoint reports a clear
   // 503 when they are absent. `.env.example` documents the expected values.

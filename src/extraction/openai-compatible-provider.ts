@@ -94,19 +94,50 @@ function safeProviderMessage(body: unknown): string {
 }
 
 /**
- * Reads AI configuration from the environment. All three connection values
- * must be present together. Missing configuration is reported as a typed
+ * Reads AI configuration from the environment.
+ * Supports both dedicated SERV_* variables (OpenServ SERV Reasoning API) and
+ * generic AI_* variables. Missing configuration is reported as a typed
  * resolution rather than thrown at startup, so research and catalogue
  * endpoints keep working when AI is not enabled.
  */
 export function resolveAiConfig(env: NodeJS.ProcessEnv = process.env): AiConfigResolution {
+  const servApiKey = (env.SERV_API_KEY ?? '').trim();
+  const servModel = (env.SERV_MODEL ?? '').trim() || 'gpt-5.4-mini';
+  const servBaseUrl = (env.SERV_BASE_URL ?? '').trim() || 'https://inference-api.openserv.ai/v1';
+
+  if (servApiKey.length > 0) {
+    try {
+      new URL(servBaseUrl);
+    } catch {
+      return {
+        configured: false,
+        reason: 'invalid AI configuration: SERV_BASE_URL must be a valid absolute URL',
+      };
+    }
+
+    return {
+      configured: true,
+      config: {
+        baseUrl: servBaseUrl.replace(/\/+$/, ''),
+        apiKey: servApiKey,
+        model: servModel,
+        timeoutMs: Number(env.SERV_TIMEOUT_MS || env.AI_TIMEOUT_MS) || DEFAULT_AI_TIMEOUT_MS,
+        maxInputTokens:
+          Number(env.SERV_MAX_INPUT_TOKENS || env.AI_MAX_INPUT_TOKENS) || DEFAULT_AI_MAX_INPUT_TOKENS,
+        maxOutputTokens:
+          Number(env.SERV_MAX_OUTPUT_TOKENS || env.AI_MAX_OUTPUT_TOKENS) || DEFAULT_AI_MAX_OUTPUT_TOKENS,
+        providerType: 'openserv-serv',
+      },
+    };
+  }
+
   const names = ['AI_BASE_URL', 'AI_API_KEY', 'AI_MODEL'] as const;
   const present = names.filter((name) => (env[name] ?? '').trim() !== '');
 
   if (present.length === 0) {
     return {
       configured: false,
-      reason: 'AI_BASE_URL, AI_API_KEY and AI_MODEL are not set',
+      reason: 'SERV_API_KEY or (AI_BASE_URL, AI_API_KEY, AI_MODEL) are not set',
     };
   }
 
@@ -127,15 +158,19 @@ export function resolveAiConfig(env: NodeJS.ProcessEnv = process.env): AiConfigR
     };
   }
 
+  const baseUrl = parsed.data.AI_BASE_URL.replace(/\/+$/, '');
+  const isServ = baseUrl.includes('openserv.ai');
+
   return {
     configured: true,
     config: {
-      baseUrl: parsed.data.AI_BASE_URL.replace(/\/+$/, ''),
+      baseUrl,
       apiKey: parsed.data.AI_API_KEY,
       model: parsed.data.AI_MODEL,
       timeoutMs: parsed.data.AI_TIMEOUT_MS,
       maxInputTokens: parsed.data.AI_MAX_INPUT_TOKENS,
       maxOutputTokens: parsed.data.AI_MAX_OUTPUT_TOKENS,
+      providerType: isServ ? 'openserv-serv' : 'openai-compatible',
     },
   };
 }
@@ -155,9 +190,11 @@ export function createOpenAiCompatibleProvider(
 ): AiProvider {
   const fetchImpl = options.fetchImpl ?? fetch;
   const endpoint = chatCompletionsUrl(config.baseUrl);
+  const isServ = config.providerType === 'openserv-serv' || config.baseUrl.includes('openserv.ai');
 
   return {
-    name: `openai-compatible:${config.model}`,
+    name: isServ ? `openserv-serv:${config.model}` : `openai-compatible:${config.model}`,
+    isServ,
 
     async complete(request: AiCompletionRequest): Promise<AiCompletionResult> {
       const inputChars = request.systemPrompt.length + request.userPrompt.length;
@@ -173,6 +210,12 @@ export function createOpenAiCompatibleProvider(
         config.maxOutputTokens,
       );
 
+      // SERV Reasoning rejects `max_tokens` and requires the newer
+      // `max_completion_tokens` parameter. Generic OpenAI-compatible endpoints
+      // still commonly expect `max_tokens`.
+      const tokenLimitField = isServ ? 'max_completion_tokens' : 'max_tokens';
+
+      const startTime = Date.now();
       let response: Response;
       try {
         response = await fetchImpl(endpoint, {
@@ -188,8 +231,8 @@ export function createOpenAiCompatibleProvider(
               { role: 'user', content: request.userPrompt },
             ],
             temperature: request.temperature,
-            max_tokens: outputLimit,
-            response_format: { type: 'json_object' },
+            [tokenLimitField]: outputLimit,
+            response_format: request.responseFormat ?? { type: 'json_object' },
           }),
           signal: AbortSignal.timeout(config.timeoutMs),
         });
@@ -203,6 +246,7 @@ export function createOpenAiCompatibleProvider(
         throw new AiProviderError('NETWORK_ERROR', 'AI provider request failed before a response');
       }
 
+      const durationMs = Date.now() - startTime;
       const rawBody = await response.text().catch(() => '');
       if (rawBody.length > MAX_RESPONSE_BYTES) {
         throw new AiProviderError('INVALID_RESPONSE', 'AI provider response exceeded the size limit', {
@@ -243,10 +287,23 @@ export function createOpenAiCompatibleProvider(
         });
       }
 
+      const requestId =
+        response.headers.get('x-request-id') ??
+        (typeof parsedBody === 'object' && parsedBody !== null && 'id' in parsedBody
+          ? String((parsedBody as Record<string, unknown>).id)
+          : undefined);
+
       const usage = parsed.data.usage;
+      const totalTokens =
+        usage && usage.prompt_tokens !== undefined && usage.completion_tokens !== undefined
+          ? usage.prompt_tokens + usage.completion_tokens
+          : undefined;
+
       return {
         text,
         model: parsed.data.model ?? config.model,
+        requestId,
+        durationMs,
         ...(usage
           ? {
               usage: {
@@ -256,6 +313,7 @@ export function createOpenAiCompatibleProvider(
                 ...(usage.completion_tokens !== undefined
                   ? { outputTokens: usage.completion_tokens }
                   : {}),
+                ...(totalTokens !== undefined ? { totalTokens } : {}),
               },
             }
           : {}),

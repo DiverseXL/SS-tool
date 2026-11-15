@@ -22,23 +22,30 @@ export interface AiCompletionRequest {
   /** Upper bound for generated tokens, sent to the provider. */
   maxOutputTokens: number;
   temperature: number;
+  /** Optional response format (e.g. { type: 'json_object' } or json_schema). */
+  responseFormat?: Record<string, unknown>;
 }
 
 export interface AiUsage {
   inputTokens?: number;
   outputTokens?: number;
+  totalTokens?: number;
 }
 
 export interface AiCompletionResult {
   /** Raw text returned by the model. It is not trusted until schema-validated. */
   text: string;
   model: string;
+  requestId?: string;
+  durationMs?: number;
   usage?: AiUsage;
 }
 
 export interface AiProvider {
   /** Human-readable provider name, safe to log. Never includes credentials. */
   readonly name: string;
+  /** True when connected to the OpenServ SERV Reasoning API. */
+  readonly isServ?: boolean;
   complete(request: AiCompletionRequest): Promise<AiCompletionResult>;
 }
 
@@ -76,6 +83,7 @@ export interface AiConfig {
   timeoutMs: number;
   maxInputTokens: number;
   maxOutputTokens: number;
+  providerType?: 'openserv-serv' | 'openai-compatible';
 }
 
 export type AiConfigResolution =
@@ -95,13 +103,31 @@ export function describeProviderFailure(error: AiProviderError): {
   code: string;
   message: string;
 } {
+  // Upstream HTTP failures get a slightly more specific presentation where the
+  // status code makes the cause unambiguous, without echoing provider text.
+  if (error.code === 'HTTP_ERROR' && error.providerStatus === 429) {
+    return {
+      statusCode: 429,
+      code: 'AI_PROVIDER_RATE_LIMITED',
+      message: 'The AI provider is rate limiting requests. Try again shortly.',
+    };
+  }
+
+  if (error.code === 'HTTP_ERROR' && (error.providerStatus === 401 || error.providerStatus === 403)) {
+    return {
+      statusCode: 502,
+      code: 'AI_PROVIDER_AUTH_FAILED',
+      message: 'The AI provider rejected the configured credentials.',
+    };
+  }
+
   switch (error.code) {
     case 'NOT_CONFIGURED':
       return {
         statusCode: 503,
         code: 'AI_NOT_CONFIGURED',
         message:
-          'AI provider is not configured. Set AI_BASE_URL, AI_API_KEY and AI_MODEL to enable extraction.',
+          'AI provider is not configured. Set SERV_API_KEY, or AI_BASE_URL, AI_API_KEY and AI_MODEL, to enable extraction.',
       };
     case 'TIMEOUT':
       return {

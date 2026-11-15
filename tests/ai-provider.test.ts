@@ -152,7 +152,7 @@ describe('OpenAI-compatible provider', () => {
       });
 
       expect(result.text).toBe('{"claims":[]}');
-      expect(result.usage).toEqual({ inputTokens: 100, outputTokens: 20 });
+      expect(result.usage).toEqual({ inputTokens: 100, outputTokens: 20, totalTokens: 120 });
       expect(capturedAuthorization).toBe('Bearer test-secret-key');
       expect(capturedBody).toMatchObject({
         model: 'test-model',

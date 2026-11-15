@@ -1,0 +1,14 @@
+# Local Cloudflare Pages development only. Never commit a real .dev.vars file.
+# Copy to .dev.vars and fill with local or staging values.
+NODE_ENV=development
+DATABASE_URL=postgresql://ss_tool:your-password@localhost:5432/ss_tool
+
+ADMIN_EMAIL=operator@example.com
+ADMIN_PASSWORD=replace-with-a-strong-password
+SESSION_SECRET=replace-with-at-least-32-random-characters
+SESSION_TTL_HOURS=8
+
+# Optional: server-side OpenServ SERV binding (never a VITE_/public variable)
+SERV_API_KEY=
+SERV_MODEL=gpt-5.4-mini
+SERV_BASE_URL=https://inference-api.openserv.ai/v1

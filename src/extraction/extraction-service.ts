@@ -108,6 +108,17 @@ export interface ProcessedSourceSummary {
   charactersSent: number;
 }
 
+export interface ExtractionObservability {
+  requestId?: string;
+  durationMs?: number;
+  usage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  };
+  isServ?: boolean;
+}
+
 export interface ExtractionResult {
   productId: string;
   extractedAt: string;
@@ -129,6 +140,7 @@ export interface ExtractionResult {
     maxInputTokens: number;
     maxOutputTokens: number;
   };
+  metadata?: ExtractionObservability;
 }
 
 export interface ExtractionService {
@@ -362,9 +374,37 @@ export function createExtractionService(
           throw error;
         }
 
+        if (completion.requestId || completion.durationMs !== undefined || completion.usage) {
+          result.metadata = {
+            requestId: completion.requestId,
+            durationMs: completion.durationMs,
+            usage: completion.usage
+              ? {
+                  promptTokens: completion.usage.inputTokens,
+                  completionTokens: completion.usage.outputTokens,
+                  totalTokens: completion.usage.totalTokens,
+                }
+              : undefined,
+            isServ: provider.isServ,
+          };
+        }
+
+        logger?.info(
+          {
+            sourceId: source.sourceId,
+            provider: provider.name,
+            durationMs: completion.durationMs,
+            requestId: completion.requestId,
+            usage: completion.usage,
+          },
+          'AI provider completion received',
+        );
+
         let claims: AiClaim[];
         try {
-          const parsed = parseAiExtractionResponse(completion.text);
+          const parsed = parseAiExtractionResponse(completion.text, {
+            sourceContent: source.contentText ?? '',
+          });
           claims = parsed.claims;
         } catch (error) {
           if (error instanceof ExtractionOutputError) {

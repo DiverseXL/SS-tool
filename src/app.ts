@@ -31,6 +31,7 @@ import { publicRoutes } from './routes/public.js';
 import { researchRoutes } from './routes/research.js';
 import { reviewRoutes } from './routes/review.js';
 import { createPublicService } from './public/public-service.js';
+import { createJudgeDemoService } from './public/judge-demo.js';
 import { createManufacturerService } from './services/manufacturer-service.js';
 import { createProductService } from './services/product-service.js';
 import { createReviewQueueService } from './verification/review-queue-service.js';
@@ -136,6 +137,8 @@ export function buildApp({
     sources: sourceRepository,
   });
 
+  const judgeDemoService = createJudgeDemoService(publicService, provider);
+
   registerErrorHandler(app);
   void app.register(fastifyCookie, { secret: authService.cookieSecret });
   registerAuthGuard(app, authService);
@@ -163,7 +166,7 @@ export function buildApp({
   });
   void app.register(catalogueRoutes, { manufacturerRepository, productRepository });
   void app.register(evidenceRoutes, { verificationService });
-  void app.register(publicRoutes, { publicService });
+  void app.register(publicRoutes, { publicService, judgeDemoService });
 
   return app;
 }
