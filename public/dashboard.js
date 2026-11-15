@@ -2267,10 +2267,12 @@
           return `
             <tr class="${item.id === query.evidenceId ? 'is-selected' : ''}">
               <td data-label="Product">
-                <button class="product-link" type="button" data-select-evidence="${escapeHtml(item.id)}">
-                  ${escapeHtml(item.product.name)}
-                </button>
-                <span class="cell-sub">${escapeHtml(item.product.category || 'Category not recorded')}</span>
+                <div>
+                  <button class="product-link" type="button" data-select-evidence="${escapeHtml(item.id)}">
+                    ${escapeHtml(item.product.name)}
+                  </button>
+                  <span class="cell-sub">${escapeHtml(item.product.category || 'Category not recorded')}</span>
+                </div>
               </td>
               <td data-label="Manufacturer">${escapeHtml(item.manufacturer.name)}</td>
               <td data-label="Model"><code>${valueOrDash(item.product.modelIdentifier)}</code></td>
@@ -2278,16 +2280,20 @@
               <td data-label="Statement">
                 <span class="queue-statement" title="${escapeHtml(item.statement)}">${escapeHtml(item.statement)}</span>
               </td>
-              <td data-label="Date">${
-                item.dateText
-                  ? `${escapeHtml(item.dateText)}<span class="cell-sub">${escapeHtml(item.datePrecision || 'Precision unavailable')}</span>`
-                  : '<span class="value-empty">No date</span>'
-              }</td>
+              <td data-label="Date">
+                <div>${
+                  item.dateText
+                    ? `${escapeHtml(item.dateText)}<span class="cell-sub">${escapeHtml(item.datePrecision || 'Precision unavailable')}</span>`
+                    : '<span class="value-empty">No date</span>'
+                }</div>
+              </td>
               <td data-label="Source"><code class="queue-domain">${escapeHtml(sourceDomain)}</code></td>
               <td data-label="Extracted"><time datetime="${escapeHtml(item.extractionTimestamp)}">${formatDateTime(item.extractionTimestamp)}</time></td>
               <td data-label="Status">
-                <span class="status-pill ${reviewStatusClass(item.status)}">${escapeHtml(reviewStatusLabel(item.status))}</span>
-                ${item.conflicting ? '<span class="review-conflict-flag">Conflict</span>' : ''}
+                <div>
+                  <span class="status-pill ${reviewStatusClass(item.status)}">${escapeHtml(reviewStatusLabel(item.status))}</span>
+                  ${item.conflicting ? '<span class="review-conflict-flag">Conflict</span>' : ''}
+                </div>
               </td>
             </tr>
           `;
