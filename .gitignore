@@ -12,3 +12,6 @@ coverage/
 # Local review screenshots, ad-hoc scripts and test output
 .tmp-*
 test-results/
+
+# Local Wrangler/Cloudflare state and cache (never commit account metadata)
+.wrangler/
