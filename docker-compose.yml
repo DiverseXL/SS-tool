@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ss-tool-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ss_tool}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ss_tool_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-ss_tool}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - ss_tool_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ss_tool} -d ${POSTGRES_DB:-ss_tool}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  ss_tool_pgdata:
+    name: ss_tool_pgdata

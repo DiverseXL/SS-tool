@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Sign in — SS Tool</title>
+    <meta name="description" content="Sign in to the SS Tool retailer workspace." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/dashboard.css" />
+    <script src="/login.js" defer></script>
+  </head>
+  <body class="auth-page">
+    <a class="skip-link" href="#login-main">Skip to sign in</a>
+    <main id="login-main" class="auth-shell">
+      <section class="auth-card" aria-labelledby="login-title">
+        <a class="auth-wordmark" href="/" aria-label="SS Tool home">
+          <span class="wordmark-rule" aria-hidden="true"></span>
+          <span>SS Tool</span>
+        </a>
+
+        <div class="auth-heading">
+          <p class="eyebrow">Retailer workspace</p>
+          <h1 id="login-title">Sign in</h1>
+          <p>Use the administrator account configured for this workspace.</p>
+        </div>
+
+        <div id="login-alert" class="alert alert--error" role="alert" hidden></div>
+
+        <form id="login-form" class="auth-form" novalidate>
+          <div class="field">
+            <label for="email">Email address</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="username"
+              required
+              spellcheck="false"
+              aria-describedby="login-help"
+            />
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <button id="login-submit" class="button button--primary button--full" type="submit">
+            Sign in
+          </button>
+          <p id="login-help" class="form-note">
+            This is a single shared workspace for the current deployment. There is no
+            self-service registration.
+          </p>
+        </form>
+
+        <footer class="auth-footer">
+          <a href="/">Return to the SS Tool website</a>
+          <span>Support information, not a security certification.</span>
+        </footer>
+      </section>
+    </main>
+  </body>
+</html>

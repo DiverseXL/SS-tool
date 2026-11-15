@@ -1,0 +1,5 @@
+manufacturer_name,manufacturer_website,manufacturer_country_code,product_name,model_identifier,gtin,sku,category,product_url,market_region
+Acme Electronics,https://acme.example.com,US,Widget Pro 3000,WP-3000,00614141453245,WP3K-SKU,Consumer Electronics,https://acme.example.com/widget-pro-3000,EMEA
+Acme Electronics,https://acme.example.com,US,Widget Lite 1000,WL-1000,,WL1K-SKU,Consumer Electronics,https://acme.example.com/widget-lite-1000,
+"Beta, Corp.",https://beta.example.com,DE,"Gadget, Deluxe","GDX-""1""",09506000134376,GDLX-SKU,Gadgets,https://beta.example.com/gadget-deluxe,APAC
+Gamma Tech,,JP,Sensor Node Alpha,SNA-100,,,,,

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Overview — SS Tool</title>
+    <meta name="description" content="SS Tool retailer workspace." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/dashboard.css" />
+    <script src="/dashboard.js" defer></script>
+  </head>
+  <body class="app-page">
+    <a class="skip-link" href="#main-content">Skip to dashboard content</a>
+
+    <div id="nav-backdrop" class="nav-backdrop" hidden></div>
+
+    <aside id="sidebar" class="sidebar" aria-label="Dashboard navigation">
+      <div class="sidebar-brand">
+        <a class="wordmark" href="/dashboard" data-link aria-label="SS Tool dashboard home">
+          <span class="wordmark-mark" aria-hidden="true">SS</span>
+          <span class="wordmark-text">SS Tool</span>
+        </a>
+      </div>
+
+      <div class="workspace">
+        <span class="workspace-label">Workspace</span>
+        <strong>SS Tool workspace</strong>
+        <span class="workspace-meta">Single administrator</span>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Workspace sections">
+        <ul>
+          <li>
+            <a href="/dashboard" data-link data-nav="overview">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <rect x="3" y="3" width="7" height="9" rx="1"></rect>
+                <rect x="14" y="3" width="7" height="5" rx="1"></rect>
+                <rect x="14" y="12" width="7" height="9" rx="1"></rect>
+                <rect x="3" y="16" width="7" height="5" rx="1"></rect>
+              </svg>
+              <span>Overview</span>
+            </a>
+          </li>
+          <li>
+            <a href="/dashboard/products" data-link data-nav="products">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="m7.5 4.27 9 5.15"></path>
+                <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                <path d="M3.3 7 12 12l8.7-5"></path>
+                <path d="M12 22V12"></path>
+              </svg>
+              <span>Product catalogue</span>
+            </a>
+          </li>
+          <li>
+            <a href="/dashboard/research" data-link data-nav="research">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+                <path d="M11 7v8"></path>
+                <path d="M7 11h8"></path>
+              </svg>
+              <span>Research</span>
+            </a>
+          </li>
+          <li>
+            <a href="/dashboard/review" data-link data-nav="review">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <rect x="8" y="2" width="8" height="4" rx="1"></rect>
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                <path d="m9 14 2 2 4-4"></path>
+              </svg>
+              <span>Evidence review</span>
+            </a>
+          </li>
+          <li>
+            <a href="/dashboard/import" data-link data-nav="import">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span>Import catalogue</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <details class="account-menu">
+          <summary>
+            <span class="account-avatar" aria-hidden="true">AD</span>
+            <span class="account-identity">
+              <span id="account-email" class="account-email">Loading account…</span>
+              <span class="account-role">Administrator</span>
+            </span>
+            <svg class="account-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </summary>
+          <div class="account-panel">
+            <p class="account-note">
+              One shared workspace. Separate retailer workspaces and account management
+              are future work.
+            </p>
+            <button id="logout-button" class="button button--secondary button--full" type="button">
+              Log out
+            </button>
+          </div>
+        </details>
+        <p class="sidebar-note">Support information, not a security certification.</p>
+      </div>
+    </aside>
+
+    <header class="app-bar">
+      <button
+        id="menu-toggle"
+        class="icon-button"
+        type="button"
+        aria-label="Open navigation"
+        aria-controls="sidebar"
+        aria-expanded="false"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <line x1="4" y1="7" x2="20" y2="7"></line>
+          <line x1="4" y1="12" x2="20" y2="12"></line>
+          <line x1="4" y1="17" x2="20" y2="17"></line>
+        </svg>
+      </button>
+      <a class="app-bar-brand" href="/dashboard" data-link>SS Tool</a>
+      <span class="app-bar-context">Retailer workspace</span>
+    </header>
+
+    <main id="main-content" class="main-content" tabindex="-1">
+      <div id="view" class="view">
+        <div class="page-loading" role="status">
+          <p class="eyebrow">Retailer workspace</p>
+          <h1>Loading dashboard</h1>
+          <div class="skeleton skeleton--title" aria-hidden="true"></div>
+          <div class="skeleton-grid" aria-hidden="true">
+            <div class="skeleton skeleton--card"></div>
+            <div class="skeleton skeleton--card"></div>
+            <div class="skeleton skeleton--card"></div>
+            <div class="skeleton skeleton--card"></div>
+          </div>
+          <p class="muted">Fetching the latest catalogue totals from PostgreSQL.</p>
+        </div>
+      </div>
+      <noscript>
+        <div class="alert alert--error">
+          The dashboard needs JavaScript enabled. The public support APIs remain available.
+        </div>
+      </noscript>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SS Tool — Security-support intelligence for electronics retailers</title>
+    <meta
+      name="description"
+      content="SS Tool helps electronics retailers find, review and share manufacturer-published security-update commitments, with sources and quotations preserved."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="SS Tool — Know how long your devices will stay supported" />
+    <meta
+      property="og:description"
+      content="Find, review and share manufacturer-published security-update commitments. Every statement keeps its source URL, exact quotation and date precision."
+    />
+    <meta property="og:image" content="/images/ss-tool-hero.webp" />
+    <meta property="og:image:alt" content="A green mountain ridge at sunrise, with fields of digital characters across the sky" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preload" as="image" href="/images/ss-tool-hero.webp" fetchpriority="high" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="wordmark" href="/" aria-label="SS Tool home">
+          <svg class="wordmark__mark" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <rect x="2.75" y="4.75" width="14.5" height="10.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" />
+            <path d="M6.5 8.5h7M6.5 11.5h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          <span>SS Tool</span>
+        </a>
+
+        <nav class="primary-nav primary-nav--dashboard" aria-label="Primary">
+          <a class="btn btn--nav" href="/dashboard">
+            Dashboard
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero__media">
+          <img
+            src="/images/ss-tool-hero.webp"
+            width="1024"
+            height="573"
+            alt="A green mountain ridge at sunrise, with fields of small digital characters filling the sky"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </div>
+        <div class="hero__scrim" aria-hidden="true"></div>
+
+        <div class="container hero__inner">
+          <div class="hero__content">
+            <p class="hero__kicker">Security-support intelligence for electronics retail</p>
+            <h1 id="hero-title">Know how long your devices will stay supported.</h1>
+            <p class="hero__sub">
+              SS Tool helps electronics retailers find, review and share manufacturer-published
+              security-update commitments, so customers can make more informed purchasing
+              decisions.
+            </p>
+            <div class="hero__actions">
+              <a class="btn btn--primary" href="#how-it-works">
+                See how it works
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                  <path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </a>
+              <a class="btn btn--secondary" href="#preview">View an example</a>
+            </div>
+          </div>
+        </div>
+
+        <p class="hero__caption" aria-hidden="true">Exact quotation · source URL · human review</p>
+      </section>
+
+      <section class="section" aria-labelledby="problem-title">
+        <div class="container problem">
+          <div>
+            <p class="eyebrow">The problem</p>
+            <h2 id="problem-title">
+              Product specifications tell you what a device does. They don't always tell you how
+              long it will be maintained.
+            </h2>
+          </div>
+          <div class="prose">
+            <p>
+              Security-support commitments are buried across manufacturer support pages, policy
+              documents and product notices. They are written at different levels of precision,
+              updated without notice, and rarely appear beside the product a customer is
+              considering.
+            </p>
+            <p>
+              Retailers end up comparing specifications while the part that shapes a device's
+              useful life stays out of view.
+            </p>
+            <p class="pull">
+              A specification sheet lists a battery life. It rarely lists an end-of-support date.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--hairline" id="how-it-works" aria-labelledby="how-title">
+        <div class="container">
+          <div class="section-intro">
+            <div>
+              <p class="eyebrow">How it works</p>
+              <h2 id="how-title">Four steps from catalogue to public support card</h2>
+            </div>
+            <p class="section-intro__note">
+              Every step keeps the original source and a human reviewer in the loop.
+            </p>
+          </div>
+
+          <ol class="steps">
+            <li>
+              <span class="step-number">01</span>
+              <h3>Import the catalogue</h3>
+              <p>Retailers upload their existing product catalogue as a CSV file.</p>
+            </li>
+            <li>
+              <span class="step-number">02</span>
+              <h3>Research manufacturer information</h3>
+              <p>
+                SS Tool discovers relevant manufacturer support pages and stores each original
+                source.
+              </p>
+            </li>
+            <li>
+              <span class="step-number">03</span>
+              <h3>Extract and review commitments</h3>
+              <p>
+                AI extracts statements and dates. Evidence is checked against source quotations,
+                and conflicting information is flagged for human review.
+              </p>
+            </li>
+            <li>
+              <span class="step-number">04</span>
+              <h3>Prepare public support information</h3>
+              <p>
+                Accepted manufacturer commitments become available through SS Tool's public
+                support-card API.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section section--hairline" aria-labelledby="capabilities-title">
+        <div class="container capabilities">
+          <div class="capabilities__intro">
+            <p class="eyebrow">Core capabilities</p>
+            <h2 id="capabilities-title">Built around evidence, not assumptions</h2>
+            <p class="prose">
+              SS Tool records what a manufacturer published and why it should be believed. The
+              claim, its wording and its source stay together.
+            </p>
+          </div>
+
+          <div class="capability-list">
+            <div class="capability">
+              <span class="capability__index">01</span>
+              <h3>Catalogue intelligence</h3>
+              <span class="capability__meta">CSV import</span>
+              <p>
+                Import and organise electronics product information, keeping manufacturers, model
+                identifiers and GTINs distinct.
+              </p>
+            </div>
+            <div class="capability">
+              <span class="capability__index">02</span>
+              <h3>Manufacturer research</h3>
+              <span class="capability__meta">Source discovery</span>
+              <p>
+                Discover support information from manufacturer webpages, within defined retrieval
+                limits and the site's robots rules.
+              </p>
+            </div>
+            <div class="capability">
+              <span class="capability__index">03</span>
+              <h3>Evidence-backed extraction</h3>
+              <span class="capability__meta">Quotation matching</span>
+              <p>
+                Preserve the original quotation, source URL and date precision for every accepted
+                commitment.
+              </p>
+            </div>
+            <div class="capability">
+              <span class="capability__index">04</span>
+              <h3>Conflict detection and review</h3>
+              <span class="capability__meta">Review queue</span>
+              <p>
+                Identify contradictory commitments and require human review before anything is
+                published.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--preview" id="preview" aria-labelledby="preview-title">
+        <div class="container">
+          <div class="section-intro">
+            <div>
+              <p class="eyebrow">Product preview</p>
+              <h2 id="preview-title">A support card, with its evidence attached</h2>
+            </div>
+            <p class="section-intro__note">
+              A support card is a public record, not a score. It shows the commitment, its
+              wording, its date precision and the manufacturer page it came from.
+            </p>
+          </div>
+
+          <p class="illustrative">Illustrative example — not a verified product record</p>
+
+          <div class="preview-grid">
+            <article class="support-card" aria-labelledby="card-product">
+              <header class="support-card__top">
+                <div>
+                  <p class="card-brand">Northline Audio · Connected speaker</p>
+                  <h3 id="card-product">Halo S1 home speaker</h3>
+                  <p class="card-model">Model NL-S1 · GTIN 5901234123457</p>
+                </div>
+                <div class="review-status">
+                  <span class="status-dot" aria-hidden="true"></span>
+                  <div>
+                    <p class="review-status__label">Reviewed</p>
+                    <p class="review-status__date">12 Nov 2026</p>
+                  </div>
+                </div>
+              </header>
+
+              <div class="support-card__body">
+                <div class="commitment">
+                  <p class="field-label">Manufacturer-stated security support</p>
+                  <p class="commitment__date">31 Dec 2030</p>
+                  <p class="commitment__precision">Date precision: day</p>
+                  <p class="commitment__note">
+                    Security updates are stated to be provided until 31 December 2030. Reviewed
+                    against the manufacturer's published support page.
+                  </p>
+                </div>
+
+                <div class="evidence">
+                  <p class="field-label">Supporting quotation</p>
+                  <blockquote>
+                    “Security updates for the Halo S1 will be provided until 31 December 2030.”
+                  </blockquote>
+                  <p class="source-link">
+                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                      <path d="M6.5 9.5l3-3M7 4.5h2.5A2.5 2.5 0 0 1 12 7v2.5M9 11.5H6.5A2.5 2.5 0 0 1 4 9V6.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    support.northline.example/security/halo-s1
+                  </p>
+                  <p class="source-meta">Manufacturer source · retrieved 12 Nov 2026</p>
+                </div>
+              </div>
+
+              <footer class="support-card__footer">
+                <p class="card-meta"><span>Claim</span><strong>Support end</strong></p>
+                <p class="card-meta"><span>Review</span><strong>Accepted by reviewer</strong></p>
+                <p class="card-meta"><span>Conflict check</span><strong>No competing commitment</strong></p>
+              </footer>
+            </article>
+
+            <aside class="review-trail" aria-labelledby="review-trail-title">
+              <h3 id="review-trail-title">Review trail</h3>
+              <ol>
+                <li><span>Source retrieved</span><span class="review-trail__value">12 Nov 2026</span></li>
+                <li><span>Quotation matched</span><span class="review-trail__value">Exact text</span></li>
+                <li><span>Date precision</span><span class="review-trail__value">Day</span></li>
+                <li><span>Conflict check</span><span class="review-trail__value">No conflict</span></li>
+                <li><span>Outcome</span><span class="review-trail__value review-trail__value--accepted">Accepted</span></li>
+              </ol>
+              <p class="review-trail__note">
+                A conflicting commitment would replace the summary with a conflict notice rather
+                than choosing one of the dates.
+              </p>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="why-it-matters" aria-labelledby="why-title">
+        <div class="container">
+          <div class="why">
+            <div>
+              <p class="eyebrow">Why it matters</p>
+              <h2 id="why-title">The support period outlives the unboxing</h2>
+              <p class="prose">
+                A connected product is never finished at the point of sale. Its usefulness depends
+                on the software behind it, and on how long the manufacturer intends to keep that
+                software maintained.
+              </p>
+            </div>
+
+            <div class="why-list">
+              <div>
+                <h3>Software is part of the product</h3>
+                <p>
+                  Connected devices depend on firmware, companion apps and cloud services. Their
+                  working life is shaped by the updates that keep those parts current.
+                </p>
+              </div>
+              <div>
+                <h3>Vulnerabilities can appear later</h3>
+                <p>
+                  A security issue may surface years after a device ships, when the original
+                  purchase decision is long settled and the packaging is gone.
+                </p>
+              </div>
+              <div>
+                <h3>Retailers need a comparable answer</h3>
+                <p>
+                  Without a published end date, support is difficult to compare across
+                  manufacturers, models and price points, and easy to leave out of a product page.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <p class="claim-note">
+            SS Tool records what manufacturers publish. It does not prevent cyberattacks, certify
+            devices as secure, or guarantee that a promised update will be delivered.
+          </p>
+        </div>
+      </section>
+
+      <section class="section section--hairline" id="for-retailers" aria-labelledby="retailers-title">
+        <div class="container retailers">
+          <div>
+            <p class="eyebrow">For retailers and e-commerce agencies</p>
+            <h2 id="retailers-title">Audit support coverage before it becomes a product-page gap</h2>
+            <p class="prose">
+              Support information is usually spread across manufacturer portals, regional pages and
+              archived policy documents. SS Tool turns that research into a reviewable record your
+              team can act on.
+            </p>
+            <p class="retailers__meta">Starts with a CSV import. No customer accounts or tracking scripts required.</p>
+          </div>
+
+          <ul class="outcomes">
+            <li>Audit a catalogue for products without a published security-support statement</li>
+            <li>Trace each commitment to its manufacturer page and exact quotation</li>
+            <li>Reduce manual searching across support portals, PDFs and policy pages</li>
+            <li>Flag contradictory dates before they reach a customer-facing page</li>
+            <li>Prepare support disclosures from records a reviewer has accepted</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section section--hairline" id="faq" aria-labelledby="faq-title">
+        <div class="container faq">
+          <div class="faq__intro">
+            <p class="eyebrow">FAQ</p>
+            <h2 id="faq-title">Questions about the record</h2>
+            <p class="faq__note">Answers reflect what SS Tool currently does, including where it stops.</p>
+          </div>
+
+          <div class="faq__list">
+            <details>
+              <summary>What is SS Tool?</summary>
+              <p>
+                SS Tool is a security-support intelligence platform for European electronics
+                retailers. It imports product catalogues, finds manufacturer support pages,
+                extracts published security-update commitments, and makes reviewed information
+                available through a public support-card API.
+              </p>
+            </details>
+            <details>
+              <summary>Where does security-support information come from?</summary>
+              <p>
+                From manufacturer-published pages that SS Tool retrieves and stores, such as
+                support, policy and security pages on the manufacturer's website. Each record keeps
+                the source URL and the exact quotation it came from. Third-party commentary is not
+                used as a source.
+              </p>
+            </details>
+            <details>
+              <summary>Does SS Tool verify that manufacturers actually deliver every promised update?</summary>
+              <p>
+                No. SS Tool verifies that a statement appears in a manufacturer source and that the
+                quotation and date are recorded accurately. It does not monitor whether updates are
+                shipped, and it cannot guarantee that a manufacturer will honour a commitment.
+              </p>
+            </details>
+            <details>
+              <summary>What happens when manufacturer sources disagree?</summary>
+              <p>
+                Conflicting commitments are detected and flagged for human review. A support card
+                caught in a conflict is shown as conflicting information; SS Tool does not choose
+                one date over the other or present a single value as settled.
+              </p>
+            </details>
+            <details>
+              <summary>Does SS Tool certify products as secure?</summary>
+              <p>
+                No. SS Tool does not certify devices, issue security ratings, or verify compliance
+                with any standard. It records and reviews manufacturer-published support
+                commitments, with their sources and limitations attached.
+              </p>
+            </details>
+            <details>
+              <summary>Who is SS Tool designed for?</summary>
+              <p>
+                European electronics retailers, e-commerce teams and agencies that manage product
+                catalogues, along with the customers who need a clearer view of how long a device
+                will be supported.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="final-cta" aria-labelledby="final-title">
+        <div class="container final-cta__inner">
+          <div>
+            <p class="eyebrow eyebrow--inverse">SS Tool</p>
+            <h2 id="final-title">Make security-support information easier to find.</h2>
+          </div>
+          <div class="final-cta__action">
+            <p>Bring manufacturer commitments closer to the decisions retailers and consumers make.</p>
+            <a class="btn btn--primary" href="#how-it-works">
+              Explore how it works
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a class="wordmark" href="/" aria-label="SS Tool home">
+              <svg class="wordmark__mark" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                <rect x="2.75" y="4.75" width="14.5" height="10.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" />
+                <path d="M6.5 8.5h7M6.5 11.5h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+              <span>SS Tool</span>
+            </a>
+            <p>
+              Security-support intelligence for European electronics retailers and the customers
+              they serve.
+            </p>
+          </div>
+
+          <nav class="footer-nav" aria-label="Footer">
+            <ul>
+              <li><a href="#how-it-works">How it works</a></li>
+              <li><a href="#for-retailers">For retailers</a></li>
+              <li><a href="#why-it-matters">Why it matters</a></li>
+              <li><a href="#faq">FAQ</a></li>
+              <li><a href="/login">Retailer sign in</a></li>
+            </ul>
+          </nav>
+        </div>
+
+        <div class="footer-bottom">
+          <p class="footer-disclaimer">
+            SS Tool records manufacturer-published security-support statements and preserves their
+            sources for review. It does not certify products as secure, guarantee update delivery,
+            or prevent cyberattacks. Support information should be checked against the
+            manufacturer's current documentation. Product and manufacturer details shown on this
+            page are illustrative and do not represent a real product record.
+          </p>
+          <div class="footer-meta">
+            <p>© 2026 SS Tool</p>
+            <p>Illustrative product data only</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
